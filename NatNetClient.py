@@ -780,7 +780,7 @@ class NatNetClient:
             data_dict[ "timestamp"] = timestamp
             data_dict[ "is_recording"] = is_recording
             data_dict[ "tracked_models_changed"] = tracked_models_changed
-
+            data_dict[ "labeled_marker_list"] = labeled_marker_data.labeled_marker_list
             self.new_frame_listener( data_dict )
         trace_mf( "MoCap Frame End\n-----------------" )
         return offset, mocap_data

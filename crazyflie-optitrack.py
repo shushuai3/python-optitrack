@@ -7,19 +7,23 @@ from NatNetClient import NatNetClient
 
 # This is called once per mocap frame.
 def receive_new_frame(data_dict):
+    print(data_dict["frame_number"])
+    print(data_dict["labeled_marker_count"])
+    a = data_dict["labeled_marker_list"]
+    print(a[0].pos)
     pass
 
 # It is called once per rigid body per frame
 def receive_rigid_body_frame( new_id, position, rotation ):
-    # pass
-    print("Received frame for rigid body", new_id," ",position," ",rotation )
+    pass
+    # print("Received frame for rigid body", new_id," ",position," ",rotation )
 
 
 if __name__ == "__main__":
 
     # Settings for the optitrack
     streaming_client = NatNetClient()
-    streaming_client.set_server_address("192.168.0.202")
+    streaming_client.set_server_address("192.168.0.249")
     streaming_client.new_frame_listener = receive_new_frame
     streaming_client.rigid_body_listener = receive_rigid_body_frame
 
