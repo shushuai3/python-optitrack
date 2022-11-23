@@ -58,7 +58,7 @@ def flock_control(position, velocity):
         v2 *= seperation_strength
         
         # Rule 3 - Alignment
-        alignment_strength = 0.01
+        alignment_strength = 0.03
         if nbs_len > 0:
             average_v = np.sum(nbs_vec_array, 0) / nbs_len
             v3 = (average_v - self_velocity) * alignment_strength
@@ -84,10 +84,12 @@ def flock_control(position, velocity):
 
     return velocity_new
 
-position = [[1.0, 1.0], [1.5, 4.0], [2.0, 2.0], [2.0, 3.0], [4.0, 3.0]]
-nb_agent = len(position)
+nb_agent = 10
+position_array = np.random.uniform(low=0.2, high=4.8, size=(nb_agent, 2))
+position = position_array.tolist()
+
 # velocity = [[0.0, 0.0] for i in range(nb_agent)]
-velocity_array = np.random.uniform(low=0.2, high=1.0, size=(5, 2))
+velocity_array = np.random.uniform(low=0.2, high=1.0, size=(nb_agent, 2))
 velocity = velocity_array.tolist()
 
 while True:
