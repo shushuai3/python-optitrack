@@ -11,33 +11,33 @@ from cflib.crazyflie.swarm import Swarm
 
 import numpy as np
 
-# left-down: [3.46, 3.35]; right-down: [-0.01, 3.33]
-# left-up: [3.46, -0.16]; right-up: [-0.01, -0.16]
+# left-down: [3.46, 3.35]; right-up: [-0.01, -0.16]
 # left: positive x; down: positive y
 
+# position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49], [2.74, 1.61], [1.97, 1.64], [1.23, 1.67], [2.73, 0.79], [1.90, 0.80], [1.17, 0.88]]
+position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49]]
+nb_agent = len(position)
+velocity_array = np.random.uniform(low=0.2, high=0.5, size=(nb_agent, 2))
+velocity = velocity_array.tolist()
 
 # Change uris according to your setup
-# URI1 = 'radio://0/80/2M/E7E7E7E7E2'
-URI2 = 'radio://0/80/2M/E7E7E7E7E0'
+URI0 = 'radio://0/80/2M/E7E7E7E7E0'
+URI1 = 'radio://0/80/2M/E7E7E7E7E1'
+URI2 = 'radio://0/80/2M/E7E7E7E7E2'
 
 # Params link optitrack and cflib
-# params1 = {'d': 0.0, 'z': 0.3}
-params2 = {'vx': 0.0, 'vy': 0.0}
+param_control = [{'vx': 0.0, 'vy': 0.0} for i in range(nb_agent)]
 
 uris = {
-    # URI0,
-    # URI1,
+    URI0,
+    URI1,
     URI2,
-    # URI3,
-    # URI4,
 }
 
 params = {
-    # URI0: [params0],
-    # URI1: [params1],
-    URI2: [params2],
-    # URI3: [params3],
-    # URI4: [params4],
+    URI0: [param_control[0]],
+    URI1: [param_control[1]],
+    URI2: [param_control[2]],
 }
 
 def poshold(cf, t, z):
@@ -86,11 +86,6 @@ def run_sequence(scf, params):
     poshold(cf, 1, base)
 
     cf.commander.send_stop_setpoint()
-
-position = [[2.68, 2.54]]
-nb_agent = len(position)
-velocity_array = np.random.uniform(low=0.2, high=0.5, size=(nb_agent, 2))
-velocity = velocity_array.tolist()
 
 def normalize(v):
     """ Normalize a vector to length 1. """
@@ -142,7 +137,7 @@ def flock_control(position, velocity):
         v2 *= seperation_strength
         
         # Rule 3 - Alignment
-        alignment_strength = 0.01
+        alignment_strength = 0.03
         if nbs_len > 0:
             average_v = np.sum(nbs_vec_array, 0) / nbs_len
             v3 = (average_v - self_velocity) * alignment_strength
@@ -175,15 +170,22 @@ def flock_control(position, velocity):
 # This is called once per mocap frame.
 def receive_new_frame(data_dict):
     # pass
-    global params2, position, velocity
+    global param_control, position, velocity
     print(data_dict["frame_number"])
     print(data_dict["labeled_marker_count"])
-    a = data_dict["labeled_marker_list"]
-    # print(a[0].pos)
-    b = a[0].pos
-    position[0] = b[0:2]
+    labeled_marker = data_dict["labeled_marker_list"]
+    for agent_id in range(len(position)):
+        position_agent_array = np.array(position[agent_id])
+        for marker in labeled_marker:
+            position_marker = marker.pos
+            position_marker_array = np.array(position_marker[0:2])
+            distance_marker_agent = np.linalg.norm(position_agent_array - position_marker_array)
+            if distance_marker_agent < 0.15:
+                position[agent_id] = position_marker[0:2]
     velocity = flock_control(position, velocity)
-    params2['vx'], params2['vy'] = velocity[0][0], velocity[0][1]
+    for agent_id in range(len(position)):
+        param_control[agent_id]['vx'] = velocity[agent_id][0]
+        param_control[agent_id]['vy'] = velocity[agent_id][1]
 
 if __name__ == "__main__":
 
