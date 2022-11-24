@@ -15,7 +15,8 @@ import numpy as np
 # left: positive x; down: positive y
 
 # position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49], [2.74, 1.61], [1.97, 1.64], [1.23, 1.67], [2.73, 0.79], [1.90, 0.80], [1.17, 0.88]]
-position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49]]
+position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49], [2.74, 1.61], [1.97, 1.64], [1.23, 1.67]]
+# position = [[2.68, 2.54], [1.83, 2.57], [1.04, 2.49]]
 nb_agent = len(position)
 velocity_array = np.random.uniform(low=0.2, high=0.5, size=(nb_agent, 2))
 velocity = velocity_array.tolist()
@@ -24,6 +25,12 @@ velocity = velocity_array.tolist()
 URI0 = 'radio://0/80/2M/E7E7E7E7E0'
 URI1 = 'radio://0/80/2M/E7E7E7E7E1'
 URI2 = 'radio://0/80/2M/E7E7E7E7E2'
+URI3 = 'radio://0/80/2M/E7E7E7E7E3'
+URI4 = 'radio://0/80/2M/E7E7E7E7E4'
+URI5 = 'radio://0/80/2M/E7E7E7E7E5'
+# URI6 = 'radio://0/80/2M/E7E7E7E7E6'
+# URI7 = 'radio://0/80/2M/E7E7E7E7E7'
+# URI8 = 'radio://0/80/2M/E7E7E7E7E8'
 
 # Params link optitrack and cflib
 param_control = [{'vx': 0.0, 'vy': 0.0} for i in range(nb_agent)]
@@ -32,12 +39,24 @@ uris = {
     URI0,
     URI1,
     URI2,
+    URI3,
+    URI4,
+    URI5,
+    # URI6,
+    # URI7,
+    # URI8,
 }
 
 params = {
     URI0: [param_control[0]],
     URI1: [param_control[1]],
     URI2: [param_control[2]],
+    URI3: [param_control[3]],
+    URI4: [param_control[4]],
+    URI5: [param_control[5]],
+    # URI6: [param_control[6]],
+    # URI7: [param_control[7]],
+    # URI8: [param_control[8]],
 }
 
 def poshold(cf, t, z):
@@ -182,10 +201,12 @@ def receive_new_frame(data_dict):
             distance_marker_agent = np.linalg.norm(position_agent_array - position_marker_array)
             if distance_marker_agent < 0.15:
                 position[agent_id] = position_marker[0:2]
-    velocity = flock_control(position, velocity)
-    for agent_id in range(len(position)):
-        param_control[agent_id]['vx'] = velocity[agent_id][0]
-        param_control[agent_id]['vy'] = velocity[agent_id][1]
+    # control with a less frequency
+    if data_dict["frame_number"] % 10 == 0:
+        velocity = flock_control(position, velocity)
+        for agent_id in range(len(position)):
+            param_control[agent_id]['vx'] = velocity[agent_id][0]
+            param_control[agent_id]['vy'] = velocity[agent_id][1]
 
 if __name__ == "__main__":
 
